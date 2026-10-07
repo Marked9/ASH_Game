@@ -1,12 +1,700 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASH Game</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#080a0e">
+<title>ASH Game</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+:root {
+    --bg: #080a0e;
+    --panel: #11151c;
+    --panel-light: #191e27;
+    --border: #292f39;
+    --text: #d8dbe1;
+    --muted: #777f8d;
+    --blue: #14283e;
+    --blue-border: #294663;
+    --ember: #b65b2c;
+    --red: #b74444;
+    --orange: #b87935;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    min-height: 100dvh;
+    background:
+        radial-gradient(ellipse at 50% 100%, #24150f 0%, transparent 42%),
+        radial-gradient(ellipse at 50% 40%, #111722 0%, var(--bg) 75%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 Roboto, Arial, sans-serif;
+    font-size: 14px;
+}
+
+button, input {
+    font: inherit;
+}
+
+button {
+    color: inherit;
+    cursor: pointer;
+}
+
+.app {
+    width: 100%;
+    max-width: 680px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.topbar {
+    padding: 12px 14px;
+    background: rgba(10, 13, 18, .96);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rune {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #444955;
+    border-radius: 50%;
+    color: #f1f2f4;
+    font-size: 24px;
+    text-shadow: 0 0 12px #fff;
+    background: #090b10;
+}
+
+.brand-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.brand-subtitle {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 3px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.status {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.stat {
+    background: #11151b;
+    border: 1px solid #252b34;
+    border-radius: 10px;
+    padding: 9px;
+    min-width: 0;
+}
+
+.stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 7px;
+    font-size: 12px;
+}
+
+.stat-icon {
+    font-size: 15px;
+}
+
+.stat-value {
+    color: #aeb4bf;
+    font-size: 10px;
+}
+
+.meter {
+    height: 4px;
+    background: #292e37;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.meter-fill {
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    transition: width .25s ease;
+}
+
+.hp-fill { background: #a83d42; }
+.food-fill { background: #bd7937; }
+.water-fill { background: #547d9e; }
+
+main {
+    flex: 1;
+    padding: 18px 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.location {
+    text-align: center;
+    padding: 5px 0 2px;
+}
+
+.location-label {
+    color: #777f8b;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.location-name {
+    margin-top: 7px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .5px;
+}
+
+.location-desc {
+    color: #777f8b;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.scene {
+    height: 125px;
+    border: 1px solid #252b34;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background:
+        radial-gradient(ellipse at 50% 110%, #733719 0%, #2c1b17 13%, transparent 45%),
+        linear-gradient(180deg, #10141c 0%, #17191d 55%, #0c0d10 100%);
+}
+
+.scene::before,
+.scene::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 48%;
+    height: 65%;
+    opacity: .65;
+    background: #080a0d;
+    clip-path: polygon(0 100%, 0 65%, 13% 65%, 20% 38%,
+        28% 60%, 42% 20%, 52% 55%, 65% 35%,
+        76% 70%, 100% 70%, 100% 100%);
+}
+
+.scene::before { left: 0; }
+.scene::after {
+    right: 0;
+    transform: scaleX(-1);
+}
+
+.campfire {
+    position: absolute;
+    z-index: 1;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 60px;
+    filter: drop-shadow(0 0 15px #a9471e);
+}
+
+.flame {
+    position: absolute;
+    bottom: 9px;
+    left: 11px;
+    width: 24px;
+    height: 42px;
+    background: linear-gradient(0deg, #d14d1d, #e6a34c 60%, #e9d6a0);
+    clip-path: polygon(50% 0, 65% 28%, 100% 54%,
+        83% 83%, 50% 100%, 15% 82%, 0 55%, 35% 35%);
+}
+
+.flame-inner {
+    position: absolute;
+    bottom: 9px;
+    left: 19px;
+    width: 10px;
+    height: 25px;
+    background: #f1c982;
+    clip-path: polygon(50% 0, 100% 65%, 50% 100%, 0 65%);
+}
+
+.log {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.message {
+    max-width: 88%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    animation: appear .2s ease-out;
+}
+
+.message.narrator { align-self: flex-start; }
+.message.player { align-self: flex-end; }
+
+.sender {
+    font-size: 10px;
+    color: #858d99;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0 4px;
+}
+
+.player .sender { text-align: right; }
+
+.bubble {
+    padding: 13px 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    border: 1px solid #2b3039;
+    background: linear-gradient(145deg, #191d24, #12151b);
+    border-radius: 4px 13px 13px 13px;
+    color: #c6cad2;
+}
+
+.player .bubble {
+    background: linear-gradient(145deg, #172b40, #101e2e);
+    border-color: var(--blue-border);
+    border-radius: 13px 4px 13px 13px;
+    color: #d1deec;
+}
+
+.time {
+    font-size: 10px;
+    color: #626a76;
+    padding: 0 4px;
+}
+
+.player .time { text-align: right; }
+
+.system {
+    align-self: center;
+    color: #8b694d;
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 12px;
+}
+
+.composer-wrap {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, #090b0f 18%);
+}
+
+.composer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    background: #11151b;
+    border: 1px solid #303640;
+    border-radius: 15px;
+}
+
+#actionInput {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 9px;
+    color: #e2e5eb;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: 14px;
+}
+
+#actionInput::placeholder { color: #656d79; }
+
+.send {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border: 1px solid #3b4653;
+    border-radius: 11px;
+    background: #1a2531;
+    color: #dce3eb;
+    font-size: 19px;
+}
+
+.send:active { background: #2a3a4c; }
+
+.bottom-tools {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tool-button {
+    padding: 7px 13px;
+    background: #11151b;
+    border: 1px solid #282e37;
+    border-radius: 20px;
+    color: #858d99;
+    font-size: 11px;
+}
+
+.tool-button:active { background: #202630; }
+
+.footer {
+    text-align: center;
+    padding: 0 10px 8px;
+    color: #4f5661;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.inventory-panel {
+    display: none;
+    padding: 14px;
+    background: #11151b;
+    border: 1px solid #303640;
+    border-radius: 12px;
+}
+
+.inventory-panel.open { display: block; }
+
+.inventory-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    color: #b9bec7;
+}
+
+.inventory-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-top: 1px solid #252b34;
+    color: #aeb4bf;
+    font-size: 12px;
+}
+
+.inventory-item span:last-child { color: #777f8b; }
+
+@keyframes appear {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 600px) {
+    main { padding-left: 22px; padding-right: 22px; }
+    .topbar { padding-left: 22px; padding-right: 22px; }
+    .composer-wrap { padding-left: 22px; padding-right: 22px; }
+    .scene { height: 155px; }
+}
+</style>
 </head>
+
 <body>
-    <h1>ASH Game</h1>
-    <p>Mini App работает.</p>
+<div class="app">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="rune">ᚠ</div>
+            <div>
+                <div class="brand-name">ASH GAME</div>
+                <div class="brand-subtitle">Survival text RPG</div>
+            </div>
+        </div>
+
+        <div class="status">
+            <div class="stat">
+                <div class="stat-top">
+                    <span class="stat-icon">♥</span>
+                    <span class="stat-value" id="hpValue">85 / 100</span>
+                </div>
+                <div class="meter">
+                    <div class="meter-fill hp-fill" id="hpBar"></div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-top">
+                    <span class="stat-icon">♨</span>
+                    <span class="stat-value" id="foodValue">62 / 100</span>
+                </div>
+                <div class="meter">
+                    <div class="meter-fill food-fill" id="foodBar"></div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-top">
+                    <span class="stat-icon">◈</span>
+                    <span class="stat-value">3 / 20</span>
+                </div>
+                <div class="meter">
+                    <div class="meter-fill water-fill" style="width:15%"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="location">
+            <div class="location-label">Текущая локация</div>
+            <div class="location-name">Пепельная пустошь</div>
+            <div class="location-desc">День 1 · Поздний вечер · −4 °C</div>
+        </section>
+
+        <div class="scene" aria-label="Угасающий костёр">
+            <div class="campfire">
+                <div class="flame"></div>
+                <div class="flame-inner"></div>
+            </div>
+        </div>
+
+        <section class="log" id="eventLog" aria-live="polite">
+            <div class="message narrator">
+                <div class="sender">Наблюдатель</div>
+                <div class="bubble">Ветер гонит пепел по мёртвой земле. За спиной догорает костёр. Вдалеке, среди руин, на мгновение вспыхивает тусклый свет.
+
+Ты один. По крайней мере, тебе хочется в это верить.</div>
+                <div class="time">Только что</div>
+            </div>
+
+            <div class="message player">
+                <div class="sender">Вы</div>
+                <div class="bubble">Осмотреть окрестности</div>
+                <div class="time">Только что</div>
+            </div>
+
+            <div class="message narrator">
+                <div class="sender">Наблюдатель</div>
+                <div class="bubble">Ты поднимаешься и вглядываешься в темноту. К северу виднеются остатки дороги. У костра лежит обгоревший рюкзак. Ветер усиливается.</div>
+                <div class="time">Только что</div>
+            </div>
+        </section>
+
+        <section class="inventory-panel" id="inventoryPanel">
+            <div class="inventory-title">ИНВЕНТАРЬ</div>
+            <div class="inventory-item">
+                <span>Обгоревший рюкзак</span>
+                <span>1 шт.</span>
+            </div>
+            <div class="inventory-item">
+                <span>Старая фляга</span>
+                <span>1 шт.</span>
+            </div>
+            <div class="inventory-item">
+                <span>Сухие ветки</span>
+                <span>3 шт.</span>
+            </div>
+        </section>
+    </main>
+
+    <div class="composer-wrap">
+        <form class="composer" id="actionForm">
+            <input
+                id="actionInput"
+                type="text"
+                placeholder="Что будете делать?"
+                autocomplete="off"
+                maxlength="500"
+                aria-label="Действие персонажа"
+            >
+            <button class="send" type="submit" aria-label="Отправить">➤</button>
+        </form>
+
+        <div class="bottom-tools">
+            <button class="tool-button" id="inventoryButton" type="button">
+                ◈ Инвентарь
+            </button>
+            <button class="tool-button" id="clearButton" type="button">
+                ↺ Новый журнал
+            </button>
+        </div>
+    </div>
+
+    <footer class="footer">ASH GAME · THE WORLD IS SILENT</footer>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    const tg = window.Telegram && window.Telegram.WebApp;
+
+    if (tg) {
+        tg.ready();
+        tg.expand();
+
+        try {
+            tg.setHeaderColor("#080a0e");
+            tg.setBackgroundColor("#080a0e");
+        } catch (e) {}
+    }
+
+    const log = document.getElementById("eventLog");
+    const form = document.getElementById("actionForm");
+    const input = document.getElementById("actionInput");
+    const inventoryButton = document.getElementById("inventoryButton");
+    const inventoryPanel = document.getElementById("inventoryPanel");
+    const clearButton = document.getElementById("clearButton");
+
+    const initialMessages = log.innerHTML;
+
+    const responses = [
+        "Ты осторожно двигаешься вперёд. Под ногами хрустит пепел. Среди обломков что-то блеснуло, но ветер быстро скрывает следы.",
+        "Тишина становится почти осязаемой. Где-то вдали раздаётся металлический скрежет. Лучше не задерживаться на открытом месте.",
+        "Ты осматриваешься. Мир вокруг давно мёртв, но следы чужого присутствия ещё не исчезли. На земле видны свежие отпечатки.",
+        "Порыв холодного ветра заставляет тебя поёжиться. Костёр почти погас. Нужно решить, что делать дальше.",
+        "В темноте мелькает неясный силуэт. Когда ты смотришь внимательнее, там уже никого нет. Возможно, это была игра теней."
+    ];
+
+    let responseIndex = 0;
+
+    function addMessage(type, sender, text) {
+        const message = document.createElement("div");
+        message.className = "message " + type;
+
+        const senderEl = document.createElement("div");
+        senderEl.className = "sender";
+        senderEl.textContent = sender;
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = text;
+
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = new Date().toLocaleTimeString("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+        message.append(senderEl, bubble, time);
+        log.appendChild(message);
+
+        message.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function addSystemMessage(text) {
+        const el = document.createElement("div");
+        el.className = "system";
+        el.textContent = text;
+        log.appendChild(el);
+    }
+
+    function sendAction(text) {
+        const action = text.trim();
+        if (!action) return;
+
+        addMessage("player", "Вы", action);
+        input.value = "";
+
+        const normalized = action.toLowerCase();
+
+        if (
+            normalized.includes("инвентарь") ||
+            normalized.includes("рюкзак")
+        ) {
+            inventoryPanel.classList.add("open");
+            addMessage(
+                "narrator",
+                "Наблюдатель",
+                "Ты проверяешь свои вещи. Запасы скудны. Каждая находка может оказаться решающей."
+            );
+            return;
+        }
+
+        if (
+            normalized.includes("костёр") ||
+            normalized.includes("костер") ||
+            normalized.includes("огонь")
+        ) {
+            addMessage(
+                "narrator",
+                "Наблюдатель",
+                "Ты приседаешь у костра. Несколько углей ещё тлеют. Тепла хватит ненадолго."
+            );
+            return;
+        }
+
+        if (
+            normalized.includes("спать") ||
+            normalized.includes("отдохнуть")
+        ) {
+            addMessage(
+                "narrator",
+                "Наблюдатель",
+                "Ты пытаешься отдохнуть, не выпуская из рук найденный обломок металла. Сон приходит урывками. Каждый шорох заставляет тебя просыпаться."
+            );
+            return;
+        }
+
+        const response = responses[responseIndex % responses.length];
+        responseIndex++;
+
+        addMessage("narrator", "Наблюдатель", response);
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        sendAction(input.value);
+    });
+
+    inventoryButton.addEventListener("click", function () {
+        inventoryPanel.classList.toggle("open");
+        if (inventoryPanel.classList.contains("open")) {
+            inventoryPanel.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+            });
+        }
+    });
+
+    clearButton.addEventListener("click", function () {
+        log.innerHTML = initialMessages;
+        inventoryPanel.classList.remove("open");
+        responseIndex = 0;
+        addSystemMessage("Журнал событий сброшен.");
+    });
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            input.blur();
+        }
+    });
+})();
+</script>
 </body>
 </html>
